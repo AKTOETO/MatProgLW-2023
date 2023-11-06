@@ -65,7 +65,6 @@ struct vec3
 
 using vec3d = vec3<double>;
 
-
 double func(vec3d vec)
 {
 	return (4 * vec.x * vec.x + 2 * vec.y * vec.y + 2 * vec.z * vec.z + vec.x * vec.z + 2 * vec.x * vec.y - 6 * vec.x - 8 * vec.z);
@@ -99,7 +98,6 @@ void grad_step(vec3d x0)
 
 	double curf = func(x0);
 	double newf = 0;
-	vec3d newx = x0;
 
 	cout << " >> Градиентный спуск с дроблением шага:\n";
 	cout << setw(10) << left << "Итерация"
@@ -114,13 +112,11 @@ void grad_step(vec3d x0)
 
 	while (grad(x0).len() > eps)
 	{
-		x0 = newx;
-
 		curf = func(x0);
 
-		newx = x0 - step * grad(x0).normalize();
+		x0 = x0 - step * grad(x0).normalize();
 
-		newf = func(newx);
+		newf = func(x0);
 
 		if (curf < newf)step *= 0.5;
 
