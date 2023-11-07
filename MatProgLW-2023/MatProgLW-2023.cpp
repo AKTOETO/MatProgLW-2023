@@ -103,7 +103,7 @@ vec3d grad(vec3d vec)
 // печать шапки таблицы
 void print_table_header()
 {
-	cout << " >> Градиентный спуск с дроблением шага:\n";
+	cout << " >> Градиентный спуск с оптимизацией по шагу:\n";
 	cout << setw(10) << left << "Итерация"
 		<< setw(10) << left << "x"
 		<< setw(10) << left << "y"
@@ -129,10 +129,32 @@ void print_table_string(
 		<< endl;
 }
 
+// расчет шага для текущей функции наискорейшим методом 
+double argmin_f(const vec3d& vec)
+{
+	// антиградиент функции
+	auto anti_gr = grad(vec).normalize();
+
+	// в f подставляем x-t*grad заместо x f(x-t*grad) 
+	// и упрощаем полученное выражение.
+	// результат дифферинцируем по t, приравниваем к 0, 
+	// выводим t(типо так: t = ..., t будет равна дроби)
+
+	double numerator = 
+		8 * vec.x * anti_gr.x + 4 * vec.y * anti_gr.y + 4 * vec.z * anti_gr.z +
+		vec.x * anti_gr.z + vec.z * anti_gr.x + 2 * vec.x * anti_gr.y + 
+		2 * vec.y * anti_gr.x - 6 * anti_gr.x - 8 * anti_gr.z;
+
+	double denumerator = 
+		8 * anti_gr.x * anti_gr.x + 4 * anti_gr.y * anti_gr.y +
+		4 * anti_gr.z * anti_gr.z + 2 * anti_gr.x * anti_gr.z +
+		4 * anti_gr.x * anti_gr.y;
+
+	return numerator / denumerator;
+}
+
 void find_extr(vec3d x0)
 {
-	vec3d x1;
-
 	double eps = 0.001;
 	int count = 0;
 	double step = 1;
@@ -141,12 +163,8 @@ void find_extr(vec3d x0)
 
 	while (grad(x0).len() > eps)
 	{
-		x1 = x0 - step * grad(x0).normalize();
-
-		while (func(x0) <= func(x1))
-			x1 = x0 - (step /= 2) * grad(x0).normalize();
-
-		x0 = x1;
+		step = argmin_f(x0);
+		x0 = x0 - step * grad(x0).normalize();
 
 		print_table_string(count++, x0, step);
 	}
