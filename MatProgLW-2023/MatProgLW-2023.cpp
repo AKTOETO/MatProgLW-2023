@@ -1,75 +1,5 @@
-﻿#include <iostream>
-#include <iomanip>
-#include <cmath>
-using namespace std;
-
-template<class Ty>
-struct vec3
-{
-	Ty x;
-	Ty y;
-	Ty z;
-
-	double len()
-	{
-		return(sqrt(x * x + y * y + z * z));
-	}
-
-	vec3<Ty> normalize()
-	{
-		return (len() > 0 ? *this / len() : vec3<Ty>{ 0,0,0 });
-	}
-
-	template<class Ty>
-	friend ostream& operator<<(ostream& out, const vec3<Ty>& vec)
-	{
-		return out << "(" << vec.x << ", " << vec.y << ", " << vec.z << ")";
-	}
-
-	template<class Ty>
-	friend vec3<Ty> operator-(const vec3<Ty>& vec, const vec3<Ty>& vec2)
-	{
-		return { vec.x - vec2.x, vec.y - vec2.y, vec.z - vec2.z };
-	}
-
-	template<class Ty>
-	friend vec3<Ty> operator+(const vec3<Ty>& vec, const vec3<Ty>& vec2)
-	{
-		return { vec2.x + vec.x, vec2.y + vec.y, vec2.z + vec.z };
-	}
-
-	template<class Ty>
-	friend vec3<Ty> operator*(const Ty& num, const vec3<Ty>& vec)
-	{
-		return { vec.x * num, vec.y * num, vec.z * num };
-	}
-
-	template<class Ty>
-	friend vec3<Ty> operator*(const vec3<Ty>& vec, const Ty& num)
-	{
-		return { vec.x * num, vec.y * num, vec.z * num };
-	}
-
-	template<class Ty>
-	friend vec3<Ty> operator*(const vec3<Ty>& vec, const vec3<Ty>& vec2)
-	{
-		return { vec.x * vec2.x, vec.y * vec2.y, vec.z * vec2.z };
-	}
-
-	template<class Ty>
-	friend vec3<Ty> operator/(const vec3<Ty>& vec, const Ty& num)
-	{
-		return { vec.x / num, vec.y / num, vec.z / num };
-	}
-
-	template<class Ty>
-	friend vec3<Ty> operator/(const Ty& num, const vec3<Ty>& vec)
-	{
-		return { num / vec.x, num / vec.y , num / vec.z };
-	}
-};
-
-using vec3d = vec3<double>;
+﻿#include <iomanip>
+#include "math.h"
 
 double func(vec3d vec)
 {
@@ -109,13 +39,12 @@ vec3d grad(vec3d vec)
 // печать шапки таблицы
 void print_table_header()
 {
-	cout << " >> Покоординатный спуск с оптимизацией по шагу:\n";
+	cout << " >> Метод Ньютона:\n";
 	cout << setw(10) << left << "Итерация"
 		<< setw(10) << left << "x"
 		<< setw(10) << left << "y"
 		<< setw(10) << left << "z"
 		<< setw(16) << left << "||gradf(x)||"
-		<< setw(12) << left << "step"
 		<< endl;
 }
 
@@ -123,16 +52,19 @@ void print_table_header()
 void print_table_string(
 	int count,
 	vec3d x0,
-	double step
+	double step = -1
 )
 {
 	cout << setw(10) << left << ++count
 		<< setw(10) << left << setprecision(4) << fixed << x0.x
 		<< setw(10) << left << setprecision(4) << fixed << x0.y
 		<< setw(10) << left << setprecision(4) << fixed << x0.z
-		<< setw(16) << left << defaultfloat << grad(x0).len()
-		<< setw(12) << left << step
-		<< endl;
+		<< setw(16) << left << defaultfloat << grad(x0).len();
+	if (step != -1)
+		cout << setw(12) << left << step;
+
+	cout << endl;
+		
 }
 
 // расчет шага для текущей функции наискорейшим методом 
@@ -163,22 +95,20 @@ void find_extr(vec3d x0)
 {
 	double eps = 0.001;
 	int count = 0;
-	double step = 1;
 
-	// векторы выбора нужной координаты
-	vec3d e[3] = { {0,0,1}, {0,1,0}, {1,0,0} };
+	// обратная матрица Гесса
+	matr<double> InvertedHess(
+		{{ 4 / 27.f , -2 / 27.f  , -1 / 27.f },
+		{ -2 / 27.f , 31 / 108.f ,  1 / 54.f },
+		{ -1 / 27.f , 1  / 54.f  ,  7 / 27.f }}
+	);
 
 	print_table_header();
 
 	while (grad(x0).len() > eps)
 	{
-		for (int i = 0; i < 3 && grad(x0).len() > eps; i++)
-		{
-			step = argmin_f(x0);
-			x0 = x0 - step * e[i] * grad(x0).normalize();
-		}
-
-		print_table_string(count++, x0, step);
+		x0 = x0 - InvertedHess * grad(x0);
+		print_table_string(count++, x0);
 	}
 
 	cout << "\nПолученная точка экстремума: " << x0 << endl;
