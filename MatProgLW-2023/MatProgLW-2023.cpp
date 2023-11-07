@@ -51,6 +51,12 @@ struct vec3
 	}
 
 	template<class Ty>
+	friend vec3<Ty> operator*(const vec3<Ty>& vec, const vec3<Ty>& vec2)
+	{
+		return { vec.x * vec2.x, vec.y * vec2.y, vec.z * vec2.z };
+	}
+
+	template<class Ty>
 	friend vec3<Ty> operator/(const vec3<Ty>& vec, const Ty& num)
 	{
 		return { vec.x / num, vec.y / num, vec.z / num };
@@ -103,7 +109,7 @@ vec3d grad(vec3d vec)
 // печать шапки таблицы
 void print_table_header()
 {
-	cout << " >> Градиентный спуск с оптимизацией по шагу:\n";
+	cout << " >> Покоординатный спуск с оптимизацией по шагу:\n";
 	cout << setw(10) << left << "Итерация"
 		<< setw(10) << left << "x"
 		<< setw(10) << left << "y"
@@ -140,12 +146,12 @@ double argmin_f(const vec3d& vec)
 	// результат дифферинцируем по t, приравниваем к 0, 
 	// выводим t(типо так: t = ..., t будет равна дроби)
 
-	double numerator = 
+	double numerator =
 		8 * vec.x * anti_gr.x + 4 * vec.y * anti_gr.y + 4 * vec.z * anti_gr.z +
-		vec.x * anti_gr.z + vec.z * anti_gr.x + 2 * vec.x * anti_gr.y + 
+		vec.x * anti_gr.z + vec.z * anti_gr.x + 2 * vec.x * anti_gr.y +
 		2 * vec.y * anti_gr.x - 6 * anti_gr.x - 8 * anti_gr.z;
 
-	double denumerator = 
+	double denumerator =
 		8 * anti_gr.x * anti_gr.x + 4 * anti_gr.y * anti_gr.y +
 		4 * anti_gr.z * anti_gr.z + 2 * anti_gr.x * anti_gr.z +
 		4 * anti_gr.x * anti_gr.y;
@@ -159,12 +165,18 @@ void find_extr(vec3d x0)
 	int count = 0;
 	double step = 1;
 
+	// векторы выбора нужной координаты
+	vec3d e[3] = { {0,0,1}, {0,1,0}, {1,0,0} };
+
 	print_table_header();
 
 	while (grad(x0).len() > eps)
 	{
-		step = argmin_f(x0);
-		x0 = x0 - step * grad(x0).normalize();
+		for (int i = 0; i < 3 && grad(x0).len() > eps; i++)
+		{
+			step = argmin_f(x0);
+			x0 = x0 - step * e[i] * grad(x0).normalize();
+		}
 
 		print_table_string(count++, x0, step);
 	}
