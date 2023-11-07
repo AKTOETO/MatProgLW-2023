@@ -141,10 +141,10 @@ void find_extr(vec3d x0)
 
 	while (grad(x0).len() > eps)
 	{
-		x1 = x0 - step * grad(x0);
+		x1 = x0 - step * grad(x0).normalize();
 
 		while (func(x0) <= func(x1))
-			x1 = x0 - (step /= 2) * grad(x0);
+			x1 = x0 - (step /= 2) * grad(x0).normalize();
 
 		x0 = x1;
 
