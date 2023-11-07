@@ -39,7 +39,7 @@ vec3d grad(vec3d vec)
 // печать шапки таблицы
 void print_table_header()
 {
-	cout << " >> Метод Ньютона:\n";
+	cout << " >> Метод сопряженных градиентов:\n";
 	cout << setw(10) << left << "Итерация"
 		<< setw(10) << left << "x"
 		<< setw(10) << left << "y"
@@ -64,15 +64,12 @@ void print_table_string(
 		cout << setw(12) << left << step;
 
 	cout << endl;
-		
+
 }
 
 // расчет шага для текущей функции наискорейшим методом 
-double argmin_f(const vec3d& vec)
+double argmin_f(const vec3d& vec, const vec3d& anti_gr)
 {
-	// антиградиент функции
-	auto anti_gr = grad(vec).normalize();
-
 	// в f подставляем x-t*grad заместо x f(x-t*grad) 
 	// и упрощаем полученное выражение.
 	// результат дифферинцируем по t, приравниваем к 0, 
@@ -95,19 +92,20 @@ void find_extr(vec3d x0)
 {
 	double eps = 0.001;
 	int count = 0;
-
-	// обратная матрица Гесса
-	matr<double> InvertedHess(
-		{{ 4 / 27.f , -2 / 27.f  , -1 / 27.f },
-		{ -2 / 27.f , 31 / 108.f ,  1 / 54.f },
-		{ -1 / 27.f , 1  / 54.f  ,  7 / 27.f }}
-	);
+	vec3d xprev = x0;
+	vec3d pk = grad(x0) * (-1.);
+	double step = argmin_f(x0, -1. * pk);
 
 	print_table_header();
 
 	while (grad(x0).len() > eps)
 	{
-		x0 = x0 - InvertedHess * grad(x0);
+		xprev = x0;
+
+		x0 = x0 + step * pk;
+		pk = -1. * grad(x0) + (pow(grad(x0).len(), 2) / pow(grad(xprev).len(), 2)) * pk;
+		step = argmin_f(x0, -1. * pk);
+
 		print_table_string(count++, x0);
 	}
 
