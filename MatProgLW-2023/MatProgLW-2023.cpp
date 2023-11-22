@@ -12,22 +12,22 @@ double func(vec3d vec)
 // производная по первой переменной
 double der_x1(vec3d vec)
 {
-	// return 8 * vec.x + vec.z + 2 * vec.y - 6;
-	return (func(vec + vec3d{ 1,0,0 }) - func(vec - vec3d{ 1,0,0 })) / 2;
+	return -6 * vec.x + vec.y + 5;
+	//return (func(vec + vec3d{ 1,0,0 }) - func(vec - vec3d{ 1,0,0 })) / 2;
 }
 
 // производная по второй переменной
 double der_x2(vec3d vec)
 {
-	// return 4 * vec.y + 2 * vec.x;
-	return (func(vec + vec3d{ 0,1,0 }) - func(vec - vec3d{ 0,1,0 })) / 2;
+	return -4 * vec.y + vec.x - vec.z;
+	//return (func(vec + vec3d{ 0,1,0 }) - func(vec - vec3d{ 0,1,0 })) / 2;
 }
 
 // производная по третей переменной
 double der_x3(vec3d vec)
 {
-	// return 4 * vec.z + vec.x - 8;
-	return (func(vec + vec3d{ 0,0,1 }) - func(vec - vec3d{ 0,0,1 })) / 2;
+	return -2 * vec.z - vec.y + 6;
+	//return (func(vec + vec3d{ 0,0,1 }) - func(vec - vec3d{ 0,0,1 })) / 2;
 }
 
 // расчет вектора градиента
@@ -64,14 +64,14 @@ void print_table_string(
 		cout << setw(12) << left << step;
 
 	cout << endl;
-		
+
 }
 
 // расчет шага для текущей функции наискорейшим методом 
 double argmin_f(const vec3d& vec)
 {
 	// антиградиент функции
-	auto anti_gr = (-1.)*grad(vec).normalize();
+	auto anti_gr = (-1.) * grad(vec).normalize();
 
 	// в f подставляем x-t*grad заместо x f(x-t*grad) 
 	// и упрощаем полученное выражение.
@@ -79,8 +79,8 @@ double argmin_f(const vec3d& vec)
 	// выводим t(типо так: t = ..., t будет равна дроби)
 
 	double numerator =
-		6 * vec.x * anti_gr.x + 4 * vec.y * anti_gr.y - vec.x * anti_gr.y - 
-		anti_gr.x * vec.y - 5 * anti_gr.x + 2 * vec.z * anti_gr.z + 
+		6 * vec.x * anti_gr.x + 4 * vec.y * anti_gr.y - vec.x * anti_gr.y -
+		anti_gr.x * vec.y - 5 * anti_gr.x + 2 * vec.z * anti_gr.z +
 		vec.y * anti_gr.z + vec.z * anti_gr.y - 6 * anti_gr.z;
 
 	double denumerator =
@@ -98,9 +98,9 @@ void find_extr(vec3d x0)
 
 	// обратная матрица Гесса
 	matr<double> InvertedHess(
-		{{ 4 / 27.f , -2 / 27.f  , -1 / 27.f },
-		{ -2 / 27.f , 31 / 108.f ,  1 / 54.f },
-		{ -1 / 27.f , 1  / 54.f  ,  7 / 27.f }}
+		{{ -4 / 23.f , -1 / 23.f , 1 / 46.f },
+		{  -1 / 23.f , -6 / 23.f , 3 / 23.f },
+		{			0,			0, -1 / 2.f }}
 	);
 
 	print_table_header();
