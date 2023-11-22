@@ -33,7 +33,7 @@ double der_x3(vec3d vec)
 // расчет вектора градиента
 vec3d grad(vec3d vec)
 {
-	return{ der_x1(vec), der_x2(vec), der_x3(vec) };
+	return vec3d({ der_x1(vec), der_x2(vec), der_x3(vec) });
 }
 
 // печать шапки таблицы
@@ -68,7 +68,7 @@ void print_table_string(
 }
 
 // расчет шага для текущей функции наискорейшим методом 
-double argmin_f(const vec3d& vec, const vec3d& anti_gr)
+double argmin_f(const vec3d& vec, const vec3d& gr)
 {
 	// в f подставляем x-t*grad заместо x f(x-t*grad) 
 	// и упрощаем полученное выражение.
@@ -76,14 +76,14 @@ double argmin_f(const vec3d& vec, const vec3d& anti_gr)
 	// выводим t(типо так: t = ..., t будет равна дроби)
 
 	double numerator =
-		6 * vec.x * anti_gr.x + 4 * vec.y * anti_gr.y - vec.x * anti_gr.y -
-		anti_gr.x * vec.y - 5 * anti_gr.x + 2 * vec.z * anti_gr.z +
-		vec.y * anti_gr.z + vec.z * anti_gr.y - 6 * anti_gr.z;
+		6 * vec.x * gr.x + 4 * vec.y * gr.y - vec.x * gr.y -
+		gr.x * vec.y - 5 * gr.x + 2 * vec.z * gr.z +
+		vec.y * gr.z + vec.z * gr.y - 6 * gr.z;
 
 	double denumerator =
-		-6 * anti_gr.x * anti_gr.x - 4 * anti_gr.y * anti_gr.y +
-		2 * anti_gr.x * anti_gr.y - 2 * anti_gr.z * anti_gr.z +
-		2 * anti_gr.x * anti_gr.z;
+		-6 * gr.x * gr.x - 4 * gr.y * gr.y +
+		2 * gr.x * gr.y - 2 * gr.z * gr.z +
+		2 * gr.x * gr.z;
 
 	return numerator / denumerator;
 }
@@ -93,8 +93,8 @@ void find_extr(vec3d x0)
 	double eps = 0.001;
 	int count = 0;
 	vec3d xprev = x0;
-	vec3d pk = grad(x0) * (-1.);
-	double step = argmin_f(x0, -1. * pk);
+	vec3d pk = grad(x0);
+	double step = argmin_f(x0, pk);
 
 	print_table_header();
 
@@ -103,8 +103,8 @@ void find_extr(vec3d x0)
 		xprev = x0;
 
 		x0 = x0 + step * pk;
-		pk = -1. * grad(x0) + (pow(grad(x0).len(), 2) / pow(grad(xprev).len(), 2)) * pk;
-		step = argmin_f(x0, -1. * pk);
+		pk = grad(x0) + (pow(grad(x0).len(), 2) / pow(grad(xprev).len(), 2)) * pk;
+		step = argmin_f(x0, pk);
 
 		print_table_string(count++, x0);
 	}
@@ -116,5 +116,5 @@ void find_extr(vec3d x0)
 int main()
 {
 	setlocale(LC_ALL, "RUSSIAN");
-	find_extr({ 0,0,0 });
+	find_extr({ 0,0,3 });
 }
